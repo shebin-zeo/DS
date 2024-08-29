@@ -1,0 +1,65 @@
+import numpy as np
+from collections import Counter
+
+class KNNClassifier:
+    # Initializing the KNN Classifier with the chosen distance metric
+    def __init__(self, distance_metric='euclidean'):
+        self.distance_metric = distance_metric
+
+    # Calculate the distance between two points
+    def calculate_distance(self, training_data_point, testing_data_point):
+        if self.distance_metric == 'euclidean':
+            dist = 0
+            for i in range(len(training_data_point) - 1):  # Exclude label
+                dist += (training_data_point[i] - testing_data_point[i]) ** 2
+            return np.sqrt(dist)
+        elif self.distance_metric == 'manhattan':
+            dist = 0
+            for i in range(len(training_data_point) - 1):  # Exclude label
+                dist += abs(training_data_point[i] - testing_data_point[i])
+            return dist
+        else:
+            raise ValueError("Unsupported distance metric. Choose 'euclidean' or 'manhattan'.")
+
+    # Find the k-nearest neighbors
+    def nearest_neighbors(self, x_train, test_data, k):
+        distances = []
+        for training_data in x_train:
+            dist = self.calculate_distance(training_data, test_data)
+            distances.append((training_data, dist))
+        
+        # Sort by distance
+        distances.sort(key=lambda x: x[1])
+        
+        # Get the k closest neighbors
+        neighbors = []
+        for i in range(k):
+            neighbors.append(distances[i][0])
+        return neighbors
+
+    # Make a prediction for a single test point
+    def predict(self, x_train, test_data, k):
+        neighbors = self.nearest_neighbors(x_train, test_data, k)
+        
+        # Extract the labels (last element of each neighbor)
+        labels = [neighbor[-1] for neighbor in neighbors]
+        
+        # Return the most common label
+        most_common = Counter(labels).most_common(1)
+        return most_common[0][0]
+
+    # Predict for multiple test points
+    def predict_batch(self, x_train, x_test, k):
+        predictions = []
+        for test_data in x_test:
+            pred = self.predict(x_train, test_data, k)
+            predictions.append(pred)
+        return predictions
+
+###########################################################################################################
+tomato = [2, 200, 4]  # Red, 120g, Sweetness 4
+
+# Predict the class for tomato
+predicted_label = knn.predict(x_train, tomato, k=2)
+
+print("Predicted label :", predicted_label)
